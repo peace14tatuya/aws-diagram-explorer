@@ -1,0 +1,49 @@
+{
+  "Resources": {
+    "Images": {
+      "Type": "AWS::S3::Bucket"
+    },
+    "UploadRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "lambda.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        },
+        "Policies": [{
+          "PolicyName": "UploadImages",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Sid": "WriteUploads",
+              "Effect": "Allow",
+              "Action": "s3:PutObject",
+              "Resource": {
+                "Fn::Sub": "${Images.Arn}/uploads/*"
+              }
+            }]
+          }
+        }]
+      }
+    },
+    "UploadFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Role": {
+          "Fn::GetAtt": ["UploadRole", "Arn"]
+        },
+        "Runtime": "python3.13",
+        "Handler": "index.handler",
+        "Code": {
+          "ZipFile": "def handler(event, context):\n    return 'demo'"
+        }
+      }
+    }
+  }
+}
